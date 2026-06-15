@@ -164,10 +164,9 @@ body {
   display: flex; justify-content: center; align-items: flex-end;
   gap: 4px; min-height: 66px; padding: 2px 0;
 }
-/* 未选中手牌区域：扇形排列 */
+/* 未选中手牌区域：下方，水平居中重叠排列 */
 .hand-cards {
   position: relative; width: 100%; margin: 0 auto;
-  /* 用 perspective 增强立体感 */
 }
 
 /* 选中区里的牌 */
