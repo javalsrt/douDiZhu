@@ -1,6 +1,6 @@
 // ===== 房间管理 & 游戏状态机 =====
 
-const { deal, analyzeHand, canBeat, isBombOrRocket, removeCards, cardsInHand, HAND_TYPE } = require('./gameEngine');
+const { deal, analyzeHand, canBeat, isBombOrRocket, removeCards, cardsInHand, HAND_TYPE, sortHand } = require('./gameEngine');
 
 // 游戏阶段
 const PHASE = {
@@ -100,8 +100,8 @@ class Room {
       this.landlordIndex = playerIndex;
       this.players[playerIndex].isLandlord = true;
       this.players[playerIndex].hand.push(...this.bottomCards);
-      // 重新排序手牌
-      this.players[playerIndex].hand.sort((a, b) => b.value - a.value);
+      // 重新排序手牌（按花色分组+值降序）
+      sortHand(this.players[playerIndex].hand);
       this.phase = PHASE.PLAYING;
       this.currentPlayerIndex = this.landlordIndex;
       this.passCount = 0;
@@ -130,7 +130,7 @@ class Room {
       this.landlordIndex = this.callingIndex;
       this.players[this.callingIndex].isLandlord = true;
       this.players[this.callingIndex].hand.push(...this.bottomCards);
-      this.players[this.callingIndex].hand.sort((a, b) => b.value - a.value);
+      sortHand(this.players[this.callingIndex].hand);
       this.phase = PHASE.PLAYING;
       this.currentPlayerIndex = this.landlordIndex;
       this.passCount = 0;

@@ -52,13 +52,22 @@ function shuffle(deck) {
   return arr;
 }
 
+// 手牌排序规则：按value降序，同value按花色（♠♣黑在前，♥♦红在后，最后是王）
+// 最终效果：大王 小王 2♠ 2♣ 2♥ 2♦ A♠ A♣ A♥ A♦ K♠ ... 3♦
+function sortHand(hand) {
+  const suitOrder = { '♠': 0, '♣': 1, '♥': 2, '♦': 3, '🃏': 4 };
+  return hand.sort((a, b) => {
+    if (b.value !== a.value) return b.value - a.value;
+    return (suitOrder[a.suit] || 0) - (suitOrder[b.suit] || 0);
+  });
+}
+
 // 发牌 (3人，留3张底牌)
 function deal() {
   const deck = shuffle(createDeck());
   const players = [deck.slice(0, 17), deck.slice(17, 34), deck.slice(34, 51)];
   const bottomCards = deck.slice(51, 54);
-  // 每人手牌按value降序排序
-  players.forEach(p => p.sort((a, b) => b.value - a.value));
+  players.forEach(p => sortHand(p));
   return { players, bottomCards };
 }
 
@@ -251,6 +260,7 @@ module.exports = {
   createDeck,
   shuffle,
   deal,
+  sortHand,
   analyzeHand,
   canBeat,
   isBombOrRocket,

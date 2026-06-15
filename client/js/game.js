@@ -408,21 +408,24 @@
       const centerX = containerWidth / 2;
       // 扇形的"圆心"在下方远处，半径越大扇形越平缓
       const radius = isLandscape ? 280 : 340;
-      // 总展开角度（弧度），牌少时角度小，牌多时角度大
-      const totalAngle = count <= 5 ? Math.PI * 0.25 : Math.min(Math.PI * 0.7, count * 0.07);
+      // 总展开角度（弧度）：牌少角度小，牌多角度大
+      const totalAngle = count <= 3
+        ? Math.PI * 0.15
+        : Math.min(Math.PI * 0.65, (count - 1) * 0.045);
       const startAngle = Math.PI / 2 - totalAngle / 2; // 从左边开始
+
+      // 扇形圆心在卡片区域下方
+      const originY = cardH + radius * 0.85;
 
       unselectedList.forEach((card, i) => {
         const div = createCardElement(card, cardW, cardH, false);
 
-        // 每张牌在扇形上的角度
+        // 每张牌在扇形上的角度（均匀分布）
         const angle = count === 1 ? Math.PI / 2 : startAngle + (totalAngle / (count - 1)) * i;
-        // 扇形圆心在卡片区域下方
-        const originY = cardH + radius * 0.85;
         const x = centerX + Math.cos(angle) * radius - cardW / 2;
         const y = originY - Math.sin(angle) * radius;
 
-        // 牌面旋转角度：让牌面垂直于半径方向（即牌面朝向扇形圆心方向）
+        // 牌面旋转角度：让牌面朝向扇形圆心方向
         const rotationDeg = count === 1 ? 0 : ((angle - Math.PI / 2) * (180 / Math.PI));
 
         div.style.left = x + 'px';
@@ -430,8 +433,8 @@
         div.style.bottom = 'auto';
         div.style.transform = 'rotate(' + rotationDeg + 'deg)';
         div.style.transformOrigin = 'center bottom';
-        // 中间牌层级最高
-        div.style.zIndex = count - Math.abs(i - (count - 1) / 2) * 10;
+        // z-index: 从左到右递增，右侧牌覆盖左侧牌，最右牌层级最高
+        div.style.zIndex = i + 1;
 
         handContainer.appendChild(div);
       });
