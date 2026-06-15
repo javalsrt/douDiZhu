@@ -158,30 +158,34 @@ body {
 .hand-area {
   padding: 0; flex-shrink: 0; position: relative;
   overflow: visible;
-  border-top: 1px dashed transparent; /* 选中牌上方分隔线占位 */
 }
+/* 选中牌区域：上方，水平居中并排 */
+.selected-cards {
+  display: flex; justify-content: center; align-items: flex-end;
+  gap: 4px; min-height: 66px; padding: 2px 0;
+}
+/* 未选中手牌区域：下方，水平居中重叠排列 */
 .hand-cards {
   position: relative; width: 100%; margin: 0 auto;
 }
 
+/* 选中区里的牌 */
+.selected-cards .hand-card {
+  position: relative !important;
+  left: auto !important; top: auto !important; bottom: auto !important;
+  z-index: auto !important;
+  transform: none !important;
+  box-shadow: 0 4px 16px rgba(10,132,255,0.4), 0 0 0 2.5px var(--accent) !important;
+}
+
+/* 下方手牌区的牌 */
 .hand-card {
   background: #FFF; border-radius: 5px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   box-shadow: 0 1px 4px rgba(0,0,0,0.12); cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: box-shadow 0.12s ease;
   position: absolute;
   user-select: none; -webkit-user-select: none;
-}
-
-/* 未选中hover */
-.hand-card:not(.selected):hover {
-  z-index: 200 !important;
-}
-
-/* 选中：提升到上方，蓝色高亮 */
-.hand-card.selected {
-  box-shadow: 0 4px 16px rgba(10,132,255,0.4), 0 0 0 2.5px var(--accent);
-  transform: none !important;
 }
 
 .hand-card:active { opacity: 0.85; }

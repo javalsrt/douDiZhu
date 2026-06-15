@@ -371,107 +371,78 @@
     }
   }
 
-  // ===== 手牌渲染（水平排列，选中牌提升到上方）=====
+  // ===== 手牌渲染（选中牌在上方容器，未选中在下方重叠排列）=====
   function renderHand() {
-    handCards.innerHTML = '';
+    const selContainer = $('#selectedCards');
+    const handContainer = $('#handCards');
+    selContainer.innerHTML = '';
+    handContainer.innerHTML = '';
 
-    const count = myHand.length;
-    if (count === 0) { updateButtons(); return; }
+    const totalCount = myHand.length;
+    if (totalCount === 0) { updateButtons(); return; }
 
-    // 获取可用宽度
-    const containerWidth = handCards.clientWidth || (window.innerWidth - 20);
+    const containerWidth = handContainer.clientWidth || (window.innerWidth - 20);
     const isLandscape = window.innerWidth > window.innerHeight;
 
     // 牌尺寸
     const cardW = isLandscape ? 34 : 40;
     const cardH = isLandscape ? 52 : 62;
 
-    // 每张牌露出的宽度（确保数字可见，最小20px）
-    const visiblePerCard = Math.min(28, Math.max(20, (containerWidth - 16) / count));
+    // 分离选中和未选中
+    const selectedList = myHand.filter(c => selectedCards.has(c.id));
+    const unselectedList = myHand.filter(c => !selectedCards.has(c.id));
 
-    // 重叠量 = 牌宽 - 露出宽度
-    const overlap = cardW - visiblePerCard;
-
-    // 手牌总宽度
-    const totalWidth = cardW + (count - 1) * visiblePerCard;
-
-    // 起始 left
-    const startLeft = (containerWidth - totalWidth) / 2;
-
-    // 容器高度：正常牌区 + 选中提升区
-    handCards.style.height = (cardH + 36) + 'px';
-    handCards.style.position = 'relative';
-
-    myHand.forEach((card, i) => {
-      const div = document.createElement('div');
-      const isRedCard = isRed(card);
-      const isJoker = card.rank === '大王' || card.rank === '小王';
-      const isSelected = selectedCards.has(card.id);
-
-      div.className = 'hand-card ' + (isRedCard ? 'red' : 'black') + (isJoker ? ' joker' : '');
-      if (isSelected) div.classList.add('selected');
-
-      div.innerHTML = `
-        <span class="rank">${card.rank}</span>
-        <span class="suit">${card.suit}</span>
-      `;
-
-      // 设置尺寸
-      div.style.width = cardW + 'px';
-      div.style.height = cardH + 'px';
-
-      // 位置计算
-      const left = startLeft + i * visiblePerCard;
-
-      if (isSelected) {
-        // 选中牌：提升到上方，集中排列
-        div.style.left = 'auto';
-        div.style.bottom = 'auto';
-        div.style.top = '0px';
-        div.style.zIndex = '100';
-        // 水平居中在选中牌区域
-        const selIdx = getSelectedIndex(card.id);
-        const selTotal = selectedCards.size;
-        const selLeft = (containerWidth / 2) - (selTotal * (cardW + 4)) / 2 + selIdx * (cardW + 4);
-        div.style.transform = `translateX(${selLeft}px)`;
-      } else {
-        // 未选中牌：正常水平排列在底部
-        div.style.left = left + 'px';
-        div.style.bottom = '0px';
-        div.style.top = 'auto';
-        div.style.zIndex = i + 1; // 后面的牌压前面的
-        div.style.transform = 'none';
-      }
-
-      div.addEventListener('click', () => toggleCard(card, div));
-      handCards.appendChild(div);
+    // ===== 上方：选中牌并排显示 =====
+    selectedList.forEach(card => {
+      const div = createCardElement(card, cardW, cardH, true);
+      selContainer.appendChild(div);
     });
+
+    // ===== 下方：未选中牌水平重叠排列 =====
+    const count = unselectedList.length;
+    if (count > 0) {
+      // 每张牌露出的宽度
+      const visiblePerCard = Math.min(28, Math.max(20, (containerWidth - 12) / count));
+      const totalWidth = cardW + (count - 1) * visiblePerCard;
+      const startLeft = Math.max(0, (containerWidth - totalWidth) / 2);
+
+      handContainer.style.height = (cardH + 4) + 'px';
+      handContainer.style.position = 'relative';
+
+      unselectedList.forEach((card, i) => {
+        const div = createCardElement(card, cardW, cardH, false);
+        div.style.left = (startLeft + i * visiblePerCard) + 'px';
+        div.style.bottom = '0px';
+        div.style.zIndex = i + 1;
+        handContainer.appendChild(div);
+      });
+    } else {
+      handContainer.style.height = '0px';
+    }
 
     updateButtons();
   }
 
-  function getSelectedIndex(cardId) {
-    // 按手牌顺序返回选中牌的索引
-    let idx = 0;
-    for (const c of myHand) {
-      if (selectedCards.has(c.id)) {
-        if (c.id === cardId) return idx;
-        idx++;
+  function createCardElement(card, cardW, cardH, isSelected) {
+    const div = document.createElement('div');
+    const isRedCard = isRed(card);
+    const isJoker = card.rank === '大王' || card.rank === '小王';
+    div.className = 'hand-card ' + (isRedCard ? 'red' : 'black') + (isJoker ? ' joker' : '');
+    if (isSelected) div.classList.add('selected');
+    div.style.width = cardW + 'px';
+    div.style.height = cardH + 'px';
+    div.innerHTML = `<span class="rank">${card.rank}</span><span class="suit">${card.suit}</span>`;
+    div.addEventListener('click', () => {
+      if (!isMyTurn) return;
+      if (selectedCards.has(card.id)) {
+        selectedCards.delete(card.id);
+      } else {
+        selectedCards.add(card.id);
+        Sound.selectCard();
       }
-    }
-    return 0;
-  }
-
-  function toggleCard(card, el) {
-    if (!isMyTurn) return;
-    if (selectedCards.has(card.id)) {
-      selectedCards.delete(card.id);
-    } else {
-      selectedCards.add(card.id);
-      Sound.selectCard();
-    }
-    // 重新渲染以更新位置
-    renderHand();
+      renderHand();
+    });
+    return div;
   }
 
   // ===== 出牌区渲染 =====
