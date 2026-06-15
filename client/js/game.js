@@ -371,58 +371,77 @@
     }
   }
 
-  // ===== 手牌渲染（扇形布局）=====
+  // ===== 手牌渲染（水平排列，选中牌提升到上方）=====
   function renderHand() {
     handCards.innerHTML = '';
 
     const count = myHand.length;
     if (count === 0) { updateButtons(); return; }
 
-    // 获取手牌区域宽度
-    const containerWidth = handCards.clientWidth || window.innerWidth - 16;
-    const cardWidth = window.innerWidth > window.innerHeight ? 34 : 40;
-    const cardHeight = window.innerWidth > window.innerHeight ? 52 : 62;
+    // 获取可用宽度
+    const containerWidth = handCards.clientWidth || (window.innerWidth - 20);
+    const isLandscape = window.innerWidth > window.innerHeight;
 
-    // 扇形参数
-    const totalArc = Math.min(count * 4, 50); // 总弧度角度，最多50度
-    const arcStart = -totalArc / 2;            // 起始角度
-    const radius = Math.max(280, count * 5.5); // 扇形半径
+    // 牌尺寸
+    const cardW = isLandscape ? 34 : 40;
+    const cardH = isLandscape ? 52 : 62;
 
-    // 容器高度
-    const maxY = radius * (1 - Math.cos(totalArc / 2 * Math.PI / 180));
-    handCards.style.height = (maxY + cardHeight + 30) + 'px';
+    // 每张牌露出的宽度（确保数字可见，最小20px）
+    const visiblePerCard = Math.min(28, Math.max(20, (containerWidth - 16) / count));
+
+    // 重叠量 = 牌宽 - 露出宽度
+    const overlap = cardW - visiblePerCard;
+
+    // 手牌总宽度
+    const totalWidth = cardW + (count - 1) * visiblePerCard;
+
+    // 起始 left
+    const startLeft = (containerWidth - totalWidth) / 2;
+
+    // 容器高度：正常牌区 + 选中提升区
+    handCards.style.height = (cardH + 36) + 'px';
+    handCards.style.position = 'relative';
 
     myHand.forEach((card, i) => {
       const div = document.createElement('div');
       const isRedCard = isRed(card);
       const isJoker = card.rank === '大王' || card.rank === '小王';
+      const isSelected = selectedCards.has(card.id);
+
       div.className = 'hand-card ' + (isRedCard ? 'red' : 'black') + (isJoker ? ' joker' : '');
-      if (selectedCards.has(card.id)) {
-        div.classList.add('selected');
-      }
+      if (isSelected) div.classList.add('selected');
 
       div.innerHTML = `
         <span class="rank">${card.rank}</span>
         <span class="suit">${card.suit}</span>
       `;
 
-      // 计算扇形位置
-      const angleStep = count > 1 ? totalArc / (count - 1) : 0;
-      const angle = (arcStart + angleStep * i) * Math.PI / 180; // 转弧度
+      // 设置尺寸
+      div.style.width = cardW + 'px';
+      div.style.height = cardH + 'px';
 
-      const x = radius * Math.sin(angle);
-      const y = radius * (1 - Math.cos(angle));
+      // 位置计算
+      const left = startLeft + i * visiblePerCard;
 
-      // 基准transform：位移到扇形位置 + 旋转
-      const baseTransform = `translate(${x}px, ${y}px) rotate(${arcStart + angleStep * i}deg)`;
-
-      // 存储基准transform
-      div.dataset.baseTransform = baseTransform;
-      div.style.transform = baseTransform;
-
-      // 用 left 定位圆心
-      div.style.left = (containerWidth / 2 - cardWidth / 2) + 'px';
-      div.style.bottom = '0px';
+      if (isSelected) {
+        // 选中牌：提升到上方，集中排列
+        div.style.left = 'auto';
+        div.style.bottom = 'auto';
+        div.style.top = '0px';
+        div.style.zIndex = '100';
+        // 水平居中在选中牌区域
+        const selIdx = getSelectedIndex(card.id);
+        const selTotal = selectedCards.size;
+        const selLeft = (containerWidth / 2) - (selTotal * (cardW + 4)) / 2 + selIdx * (cardW + 4);
+        div.style.transform = `translateX(${selLeft}px)`;
+      } else {
+        // 未选中牌：正常水平排列在底部
+        div.style.left = left + 'px';
+        div.style.bottom = '0px';
+        div.style.top = 'auto';
+        div.style.zIndex = i + 1; // 后面的牌压前面的
+        div.style.transform = 'none';
+      }
 
       div.addEventListener('click', () => toggleCard(card, div));
       handCards.appendChild(div);
@@ -431,20 +450,28 @@
     updateButtons();
   }
 
+  function getSelectedIndex(cardId) {
+    // 按手牌顺序返回选中牌的索引
+    let idx = 0;
+    for (const c of myHand) {
+      if (selectedCards.has(c.id)) {
+        if (c.id === cardId) return idx;
+        idx++;
+      }
+    }
+    return 0;
+  }
+
   function toggleCard(card, el) {
     if (!isMyTurn) return;
     if (selectedCards.has(card.id)) {
       selectedCards.delete(card.id);
-      el.classList.remove('selected');
-      // 恢复基准transform
-      el.style.transform = el.dataset.baseTransform || '';
     } else {
       selectedCards.add(card.id);
-      el.classList.add('selected');
       Sound.selectCard();
-      // selected 样式由CSS的 !important 覆盖transform
     }
-    updateButtons();
+    // 重新渲染以更新位置
+    renderHand();
   }
 
   // ===== 出牌区渲染 =====
