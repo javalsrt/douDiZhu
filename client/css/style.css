@@ -155,25 +155,36 @@ body {
 .bottom-card.face-up { background: #FFF; color: var(--text); }
 
 /* ===== 手牌区域 ===== */
-.hand-area { padding: 0 4px 1px; flex-shrink: 0; }
-.hand-cards { display: flex; justify-content: center; align-items: flex-end; height: 72px; gap: 0; }
+.hand-area { padding: 0 4px 1px; flex-shrink: 0; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
+.hand-cards { display: flex; justify-content: center; align-items: flex-end; height: 80px; gap: 0; padding: 0 4px; }
 
 .hand-card {
-  width: 36px; height: 58px; background: #FFF; border-radius: 5px;
+  width: 40px; height: 62px; background: #FFF; border-radius: 5px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;
-  transition: transform 0.1s, margin-top 0.1s; flex-shrink: 0; margin-left: -18px;
+  transition: transform 0.12s ease, margin-top 0.12s ease, box-shadow 0.12s ease, z-index 0s;
+  flex-shrink: 0; margin-left: -20px; position: relative; z-index: 1;
 }
 .hand-card:first-child { margin-left: 0; }
-.hand-card.selected { margin-top: -14px; box-shadow: 0 3px 10px rgba(10,132,255,0.35); }
+
+/* 选中：向上弹出一张牌的高度 */
+.hand-card.selected {
+  margin-top: -20px;
+  transform: translateY(-6px) scale(1.08);
+  box-shadow: 0 6px 18px rgba(10,132,255,0.35), 0 0 0 2px var(--accent);
+  z-index: 10 !important;
+}
+
+/* hover 时 z-index 升高方便点击 */
+.hand-card:hover { z-index: 5; }
+
 .hand-card:active { transform: scale(0.93); }
-.hand-card .rank { font-size: 13px; font-weight: 700; line-height: 1; }
-.hand-card .suit { font-size: 8px; line-height: 1; margin-top: 1px; }
+.hand-card .rank { font-size: 14px; font-weight: 700; line-height: 1; }
+.hand-card .suit { font-size: 9px; line-height: 1; margin-top: 2px; }
 .hand-card.red { color: var(--card-red); }
 .hand-card.black { color: var(--card-black); }
 .hand-card.joker { background: linear-gradient(135deg, #FFF 0%, #FFF0F0 100%); }
 .hand-card.joker .rank { font-size: 8px; line-height: 1.1; }
-.hand-card.highlight { box-shadow: 0 0 0 2px var(--accent), 0 2px 6px rgba(10,132,255,0.2); }
 
 /* ===== 操作栏 ===== */
 .action-bar, .call-bar {
@@ -244,13 +255,15 @@ body {
 
   /* 横屏手牌更紧凑 */
   body.landscape .hand-area { padding: 0 2px 0; }
-  body.landscape .hand-cards { height: 62px; }
+  body.landscape .hand-cards { height: 68px; }
   body.landscape .hand-card {
-    width: 30px; height: 48px; margin-left: -20px; border-radius: 4px;
+    width: 34px; height: 52px; margin-left: -22px; border-radius: 4px;
   }
-  body.landscape .hand-card .rank { font-size: 11px; }
+  body.landscape .hand-card .rank { font-size: 12px; }
   body.landscape .hand-card .suit { font-size: 7px; }
-  body.landscape .hand-card.selected { margin-top: -12px; }
+  body.landscape .hand-card.selected {
+    margin-top: -18px; transform: translateY(-4px) scale(1.06);
+  }
   body.landscape .hand-card.joker .rank { font-size: 7px; }
 
   /* 横屏出牌区 */
@@ -280,10 +293,11 @@ body {
 /*  极小竖屏 (iPhone SE 等)                   */
 /* ======================================== */
 @media (max-width: 380px) and (orientation: portrait) {
-  .hand-card { width: 32px; height: 52px; margin-left: -20px; }
-  .hand-card .rank { font-size: 11px; }
+  .hand-card { width: 36px; height: 56px; margin-left: -24px; }
+  .hand-card .rank { font-size: 12px; }
   .hand-card .suit { font-size: 7px; }
-  .hand-cards { height: 64px; }
+  .hand-card.selected { margin-top: -18px; transform: translateY(-4px) scale(1.06); }
+  .hand-cards { height: 72px; }
   .played-card { width: 26px; height: 36px; }
   .played-card .rank { font-size: 11px; }
   .played-card .suit { font-size: 7px; }
@@ -297,10 +311,11 @@ body {
 /*  大屏手机 / 平板                          */
 /* ======================================== */
 @media (min-width: 500px) and (orientation: portrait) {
-  .hand-card { width: 44px; height: 70px; margin-left: -16px; }
-  .hand-card .rank { font-size: 15px; }
+  .hand-card { width: 48px; height: 74px; margin-left: -16px; }
+  .hand-card .rank { font-size: 16px; }
   .hand-card .suit { font-size: 10px; }
-  .hand-cards { height: 88px; }
+  .hand-card.selected { margin-top: -22px; transform: translateY(-8px) scale(1.08); }
+  .hand-cards { height: 96px; }
   .played-card { width: 36px; height: 50px; }
   .played-card .rank { font-size: 15px; }
   .played-card .suit { font-size: 9px; }
