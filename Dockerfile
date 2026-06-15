@@ -12,7 +12,7 @@ RUN npm install --production
 COPY server/ ./
 
 # 复制客户端静态文件
-COPY client/ ../client/
+COPY client/ ./client/
 
 EXPOSE 3001
 
