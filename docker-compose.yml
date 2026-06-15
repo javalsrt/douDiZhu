@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  doudizhu:
+    build: .
+    container_name: doudizhu
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,15 @@
+{
+  "name": "doudizhu-server",
+  "version": "1.0.0",
+  "description": "斗地主游戏服务器 - WebSocket实时对战",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.0"
+  }
+}
