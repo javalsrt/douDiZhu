@@ -371,11 +371,28 @@
     }
   }
 
-  // ===== 手牌渲染 =====
+  // ===== 手牌渲染（扇形布局）=====
   function renderHand() {
     handCards.innerHTML = '';
 
-    myHand.forEach((card) => {
+    const count = myHand.length;
+    if (count === 0) { updateButtons(); return; }
+
+    // 获取手牌区域宽度
+    const containerWidth = handCards.clientWidth || window.innerWidth - 16;
+    const cardWidth = window.innerWidth > window.innerHeight ? 34 : 40;
+    const cardHeight = window.innerWidth > window.innerHeight ? 52 : 62;
+
+    // 扇形参数
+    const totalArc = Math.min(count * 4, 50); // 总弧度角度，最多50度
+    const arcStart = -totalArc / 2;            // 起始角度
+    const radius = Math.max(280, count * 5.5); // 扇形半径
+
+    // 容器高度
+    const maxY = radius * (1 - Math.cos(totalArc / 2 * Math.PI / 180));
+    handCards.style.height = (maxY + cardHeight + 30) + 'px';
+
+    myHand.forEach((card, i) => {
       const div = document.createElement('div');
       const isRedCard = isRed(card);
       const isJoker = card.rank === '大王' || card.rank === '小王';
@@ -389,6 +406,24 @@
         <span class="suit">${card.suit}</span>
       `;
 
+      // 计算扇形位置
+      const angleStep = count > 1 ? totalArc / (count - 1) : 0;
+      const angle = (arcStart + angleStep * i) * Math.PI / 180; // 转弧度
+
+      const x = radius * Math.sin(angle);
+      const y = radius * (1 - Math.cos(angle));
+
+      // 基准transform：位移到扇形位置 + 旋转
+      const baseTransform = `translate(${x}px, ${y}px) rotate(${arcStart + angleStep * i}deg)`;
+
+      // 存储基准transform
+      div.dataset.baseTransform = baseTransform;
+      div.style.transform = baseTransform;
+
+      // 用 left 定位圆心
+      div.style.left = (containerWidth / 2 - cardWidth / 2) + 'px';
+      div.style.bottom = '0px';
+
       div.addEventListener('click', () => toggleCard(card, div));
       handCards.appendChild(div);
     });
@@ -401,10 +436,13 @@
     if (selectedCards.has(card.id)) {
       selectedCards.delete(card.id);
       el.classList.remove('selected');
+      // 恢复基准transform
+      el.style.transform = el.dataset.baseTransform || '';
     } else {
       selectedCards.add(card.id);
       el.classList.add('selected');
       Sound.selectCard();
+      // selected 样式由CSS的 !important 覆盖transform
     }
     updateButtons();
   }
