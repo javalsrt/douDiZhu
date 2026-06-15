@@ -16,8 +16,12 @@ const io = new Server(server, {
 
 const roomManager = new RoomManager();
 
-// 静态文件服务
-app.use(express.static(path.join(__dirname, '..', 'client')));
+// 静态文件服务（兼容本地开发和Docker部署路径）
+const clientPath = path.join(__dirname, '..', 'client');
+const dockerClientPath = path.join(__dirname, 'client');
+const fs = require('fs');
+const staticPath = fs.existsSync(dockerClientPath) ? dockerClientPath : clientPath;
+app.use(express.static(staticPath));
 
 // 连接用户映射
 const users = new Map(); // socketId -> { id, name }
