@@ -102,6 +102,20 @@
   <!-- 提示弹窗 -->
   <div id="toast" class="toast" style="display:none"></div>
 
+  <script>
+    // 横竖屏检测
+    (function() {
+      function updateOrientation() {
+        var isLandscape = window.innerWidth > window.innerHeight;
+        document.body.classList.toggle('landscape', isLandscape);
+      }
+      updateOrientation();
+      window.addEventListener('resize', updateOrientation);
+      window.addEventListener('orientationchange', function() {
+        setTimeout(updateOrientation, 100);
+      });
+    })();
+  </script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/sound.js"></script>
   <script src="js/game.js"></script>
